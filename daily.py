@@ -1,6 +1,9 @@
 from datetime import datetime
+from GetFiles import GetFiles
 ## â€™
 ## Â
+#�
+# making status update for only total word and tm fill
 class DailyUpdate():
     date = datetime.today().strftime("%Y-%m-%d")
     
@@ -15,13 +18,16 @@ class DailyUpdate():
         "Categories":"","product":"","version":"","title":"","ja url":"","Phrase project":"",
         "Phrase job":"","Ver.":"","TEAM":"","Total words":"","Approx net words":"","Hours estimated":"",
         "Quality":"","Hours used":"","Translator":"","ComDate":"","Status":"","LastUpdate":"",
-        "% filled from TM":"","Pantheon":"","en url":"","en date":"","net_word":"", "Notes":"",
+        "% filled from TM":"","Pantheon":"","en url":"","en date":"","CP":"", "CheckDate":"","Notes":"",
     }
 
     check2bsame = ["product", "version", "title"]
-    copy_lst_from_daily = ["Total words", "Approx net words", "% filled from TM"]
+    pre_release = ["pre-work", "prework"]
+    copy_lst_from_daily = ["Total words", "Approx net words", "% filled from TM",
+                           "Phrase job", "Phrase project", "en url", "ja url", "en date"]
 
     delete_lst = ["Translator", "ComDate", "Hours used"]
+
 
     def __init__(self, daily_update, jp_runsheet):
         self.daily_update = daily_update
@@ -40,11 +46,19 @@ class DailyUpdate():
         self.jp_sheet_csv = self.remove_break(self.jp_sheet_csv)
         
         self.newly_added = []
-
+        self.pre_work_changed = []
         ##TODO 3: iterate each jp date to en_date to compare, 
         # TODO 3.5: if product, version, title from jp sheet, 
         # are the same as rudi_info then copy  "Total words", "Approx net words", "% filled from TM", Phrase job from daily update to jpsheet
         self.overwrite_jp_info() ## for non_chage
+
+        
+
+        ##TODO 05-15, if jp_data has NA in dict object then check if daily update data has updated infor, URL, for that dict object.
+        #check if there are NA in jp has_value 
+        #get NAs from jp dict, has_value, list ex: ['ja url', 'en url']
+        #compare that nas to new update object, 
+        #if difference then copy from daily
 
         ##TODO 4: if product, version, titles are the same but
         # total words, approx networds are different, then copy those with Phrase job url then change status to UPD then change Lastupdate to currentdate,
@@ -93,19 +107,32 @@ class DailyUpdate():
             jp_dict[item] = ""
         return jp_dict
         
+    def check_prer_change(self, en_dict, jp_dict, key, pre_work_list):
+        return en_dict[key] not in pre_work_list and jp_dict[key] in pre_work_list
+
+    def get_prer_change(self, en_dict):
+        self.pre_work_changed.append(en_dict)
+
     def overwrite_jp_info(self):
         ##if product, version, title from jp sheet, 
         # are the same as rudi_info then copy
         # "Total words", "Approx net words", "% filled from TM" from daily update to jpsheet
+        pre_work = []
         for daily_dict in self.daily_update_csv:
             for jp_dict in self.jp_sheet_csv:
                 if self.find_match(daily_dict, jp_dict, self.check2bsame):
                     if jp_dict["Status"] == "Done":
                         self.delete_items(jp_dict, self.delete_lst)
                         jp_dict["Status"] = "UPD"
+                    
+                    ##see if pre-work status has been changed; if so , then writes down to pre-work_change.csv
+                    if self.check_prer_change(daily_dict, jp_dict, "en date", self.pre_release):
+                        pre_work.append(daily_dict)
+
                     self.copy_from_daily(daily_dict, jp_dict, self.copy_lst_from_daily)
                     jp_dict["Status"] = "UPD"
                     jp_dict["LastUpdate"] = self.date
+        self.pre_work_changed = pre_work
     
     def get_no_match_list(self):
         return [daily_dict for daily_dict in self.daily_update_csv if not any(self.find_match(daily_dict, jp_dict, self.check2bsame) for jp_dict in self.jp_sheet_csv)]
@@ -117,13 +144,20 @@ class DailyUpdate():
     
     def remove_break(self, dict_lst):
         return [{k: v.replace("\n", "") for k, v in each_dict.items()} for each_dict in dict_lst]
-
-
-with open("0508_en.csv", "r") as daily_data, open("0505_jp.csv", "r") as jp_data, open("updated_daily.csv", "w") as updated, open("nomatch.csv", "w") as nomatch:
-    daily_update = DailyUpdate(daily_data, jp_data)
+        
+getfile = GetFiles()
+with open(getfile.en_dfile, "r") as en_data, open(getfile.jp_dfile, "r", encoding='utf-8') as jp_data, open("updated_daily.csv", "w", encoding='utf-8') as updated, open("nomatch.csv", "w") as nomatch, open("pre_work_change.csv", 'w') as pre_work:
+    
+    #print(daily_data.en_data, file=test)
+    daily_update = DailyUpdate(en_data, jp_data)
     
     for item in daily_update.csv_values(daily_update.jp_sheet_csv):
         print(item, file=updated)
     
     for item in daily_update.csv_values(daily_update.no_match_list):
         print(item, file=nomatch)
+
+    for item in daily_update.csv_values(daily_update.pre_work_changed):
+        print(item, file=pre_work)
+
+        #https://red-hat-l10n.pages.redhat.com/CLinfra-reports/2023/07/daily_source_updates_ja_2023-07-10.csv
