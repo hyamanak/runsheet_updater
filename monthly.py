@@ -1,11 +1,12 @@
 from datetime import datetime
+from GetMonthlyFiles import GetFiles
 ## â€™
 ## Â
 # making status update for only total word and tm fill
-class DailyUpdate():
+class MonthlyUpdate():
     date = datetime.today().strftime("%Y-%m-%d")
     
-    daily_data_dict = {
+    monthly_data_dict = {
         "product":"","version":"","title":"","Phrase project":"","Phrase job":"",
         "Total words":"","Approx net words":"","Hours estimated":"","Hours used":"","Notes":"",
         "Translator":"","% filled from TM":"",
@@ -32,7 +33,7 @@ class DailyUpdate():
 
         ##TODO 1: get data from daily sheet to put in jp_sheet format (csv format)
         ## first map update info to daily_data dict then convert to jp format
-        self.daily_update_csv = self.insert_jp_format(self.daily_update, self.daily_data_dict) 
+        self.daily_update_csv = self.insert_jp_format(self.daily_update, self.monthly_data_dict) 
         self.update2jp_format()
         self.daily_update_csv = self.add_single_quo(self.daily_update_csv)
         self.daily_update_csv = self.remove_break(self.daily_update_csv)
@@ -159,15 +160,15 @@ class DailyUpdate():
     def remove_break(self, dict_lst):
         return [{k: v.replace("\n", "") for k, v in each_dict.items()} for each_dict in dict_lst]
 
-
-with open("m_en.csv", "r", encoding='utf-8') as daily_data, open("m_jp.csv", "r", encoding='utf-8') as jp_data, open("updated_daily.csv", "w", encoding='utf-8') as updated, open("nomatch.csv", "w") as nomatch, open("pre_work_change.csv", 'w') as pre_work:
-    daily_update = DailyUpdate(daily_data, jp_data)
+getfile = GetFiles()
+with open(getfile.en_mfile, "r", encoding='cp1252') as monthly_data, open(getfile.jp_mfile, "r", encoding='cp1252') as jp_data, open("updated_monthly.csv", "w", encoding='cp1252') as updated, open("nomatch_monthly.csv", "w") as nomatch, open("pre_work_change_monthly.csv", 'w') as pre_work:
+    monthly_update = MonthlyUpdate(monthly_data, jp_data)
     
-    for item in daily_update.csv_values(daily_update.jp_sheet_csv):
+    for item in monthly_update.csv_values(monthly_update.jp_sheet_csv):
         print(item, file=updated)
     
-    for item in daily_update.csv_values(daily_update.no_match_list):
+    for item in monthly_update.csv_values(monthly_update.no_match_list):
         print(item, file=nomatch)
 
-    for item in daily_update.csv_values(daily_update.pre_work_changed):
+    for item in monthly_update.csv_values(monthly_update.pre_work_changed):
         print(item, file=pre_work)
