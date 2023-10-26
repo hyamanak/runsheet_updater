@@ -16,7 +16,7 @@ class DailyUpdate():
 
     jp_sheet_dict = {
         "product":"","version":"","title":"","ja url":"","Phrase project":"",
-        "Phrase job":"","Ver.":"","TEAM":"","Total words":"","Approx net words":"","Hours estimated":"",
+        "Phrase job":"","Ver.":"","Categories":"","Total words":"","Approx net words":"","Hours estimated":"",
         "Quality":"","Hours used":"","Translator":"","ComDate":"","Status":"","LastUpdate":"",
         "% filled from TM":"","Pantheon":"","en url":"","en date":"","CP":"", "CheckDate":"","Notes":"",
     }
