@@ -161,7 +161,7 @@ class MonthlyUpdate():
         return [{k: v.replace("\n", "") for k, v in each_dict.items()} for each_dict in dict_lst]
 
 getfile = GetFiles()
-with open(getfile.en_mfile, "r", encoding='cp1252') as monthly_data, open(getfile.jp_mfile, "r", encoding='cp1252') as jp_data, open("updated_monthly.csv", "w", encoding='cp1252') as updated, open("nomatch_monthly.csv", "w") as nomatch, open("pre_work_change_monthly.csv", 'w') as pre_work:
+with open(getfile.en_mfile, "r", encoding='utf-8') as monthly_data, open(getfile.jp_mfile, "r", encoding='utf-8') as jp_data, open("updated_monthly.csv", "w", encoding='utf-8') as updated, open("nomatch_monthly.csv", "w", encoding='utf-8') as nomatch, open("pre_work_change_monthly.csv", 'w') as pre_work:
     monthly_update = MonthlyUpdate(monthly_data, jp_data)
     
     for item in monthly_update.csv_values(monthly_update.jp_sheet_csv):
